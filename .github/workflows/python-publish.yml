@@ -41,5 +41,5 @@ jobs:
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        # packages-dir: ./hatch/hatch-module-yorailevi # the action doesn't use cwd but global repo
+        packages-dir: ./hatch/hatch-module-yorailevi # the action doesn't use cwd but global repo
         repository-url: https://test.pypi.org/legacy/
