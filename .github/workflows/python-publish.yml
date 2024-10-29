@@ -10,16 +10,22 @@ name: Upload Python Package
 
 on:
   release:
-    types: [published]
-
-permissions:
-  contents: read
-
+    # types: [published]
+  push:
+      branches: [ $default-branch ]
+  
 jobs:
   deploy:
-
+    environment:
+        name: testpypiF
+        url: https://test.pypi.org/p/hatch-module-yorailevi
+    permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
+      id-token: write  # IMPORTANT: mandatory for sigstore # IMPORTANT: mandatory for trusted publishing
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: ./hatch/hatch-module-yorailevi
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -33,7 +39,7 @@ jobs:
     - name: Build package
       run: python -m build
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        packages-dir: ./hatch/hatch-module-yorailevi # the action doesn't use cwd but global repo
+        repository-url: https://test.pypi.org/legacy/
