@@ -43,3 +43,4 @@ jobs:
       with:
         packages-dir: ./hatch/hatch-module-yorailevi/dist/ # the action doesn't use cwd but global repo
         repository-url: https://test.pypi.org/legacy/
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}

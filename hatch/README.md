@@ -22,11 +22,17 @@ Credentials
     username = __token__
     password = pypi-*********
 ```
-
+from pypi/test.pypi
 ```
 pip install hatch-module-yorailevi
+pip install -i https://test.pypi.org/simple/ hatch-module-yorailevi
 ```
 
+from github url
+```
+python -m pip install "git+https://github.com/YoraiLevi/pip_installable_module/#subdirectory=hatch/hatch-module-yorailevi"
+```
+Locally, editable
 ```
 pip install -e .
 ```
