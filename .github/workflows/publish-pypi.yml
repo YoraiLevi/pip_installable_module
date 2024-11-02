@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
+name: Publish Python Package 🐍 📦 to PyPI
 
 on: push
 jobs:
@@ -57,7 +57,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
     name: >-
-      Publish Python 🐍 distribution 📦 to PyPI
+      PyPI: ${{matrix.package-name}}
     if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
     needs:
       - setup-matrix
@@ -83,7 +83,8 @@ jobs:
   publish-to-testpypi:
     strategy:
       matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
-    name: Publish ${{matrix.package-name}} 🐍 distribution 📦 to TestPyPI
+    name: >-
+      TestPyPI: ${{matrix.package-name}}
     needs:
     - setup-matrix
     - build
