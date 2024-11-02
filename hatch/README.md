@@ -36,3 +36,8 @@ Locally, editable
 ```
 pip install -e .
 ```
+
+
+configuration?
+git tag v0.0.7
+git push origin tag v0.0.7
