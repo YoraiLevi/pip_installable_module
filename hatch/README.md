@@ -3,41 +3,39 @@
 ```
 hatch new "Hatch Module YoraiLevi"
 ```
-Tests?
+## Tests
 ```
-```
-Building
-```
-hatch build
-```
-Publishing
-```
+pytest
 ```
 
-Credentials
+## Building
 ```
-~/.pypirc
-[pypi]
-    repository = https://upload.pypi.org/legacy/
-    username = __token__
-    password = pypi-*********
+hatch build
+python -m build
 ```
-from pypi/test.pypi
+
+## Publishing from cli
+```
+hatch publish
+
+hatch publish -r test
+twine upload dist/* -r testpypi
+```
+
+## Install
+### from pypi/test.pypi
 ```
 pip install hatch-module-yorailevi
 pip install -i https://test.pypi.org/simple/ hatch-module-yorailevi
 ```
 
-from github url
+### from github url
 ```
 python -m pip install "git+https://github.com/YoraiLevi/pip_installable_module/#subdirectory=hatch/hatch-module-yorailevi"
 ```
-Locally, editable
+### Locally, editable
 ```
 pip install -e .
 ```
 
 
-configuration?
-git tag v0.0.7
-git push origin tag v0.0.7

@@ -102,7 +102,8 @@ jobs:
     steps:
     - name: Check and Set Variable
       run: |
-        if [ -z "${{ env.GITHUB_WORKFLOW_REF }}" ]; then
+        echo "$GITHUB_WORKFLOW_REF"
+        if [ -z "$GITHUB_WORKFLOW_REF" ]; then
           echo "GITHUB_WORKFLOW_REF=refs/heads/${{ github.ref_name }}" >> $GITHUB_ENV
         fi
     - name: Download all the dists
