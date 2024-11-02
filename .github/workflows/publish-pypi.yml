@@ -1,0 +1,158 @@
+name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
+
+on: push
+jobs:
+  setup-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.setup-matrix.outputs.matrix }}
+    steps:
+      - id: setup-matrix
+        uses: druzsan/setup-matrix@v2
+        with:
+        # Use | to preserve valid YAML syntax
+          matrix: |
+            dist-directory: ['dist/']
+            src-directory: ['.']
+            package-name: ['']
+            include:
+              - src-directory: ./hatch/hatch-module-yorailevi/
+                dist-directory: ./hatch/hatch-module-yorailevi/dist/
+                package-name: hatch-module-yorailevi
+            exclude:
+              - package-name: ''
+  build:
+    needs: setup-matrix
+    strategy:
+      matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+    name: Build distribution 📦
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo "Building distribution 📦 for ${{ matrix.package-name }}
+        from ${{ matrix.src-directory }} to ${{ matrix.dist-directory }}"
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.x"
+    - name: Install pypa/build
+      run: >-
+        python3 -m
+        pip install
+        build
+        --user
+    - name: Build a binary wheel and a source tarball
+      run: |
+        python3 -m build --outdir ${{ matrix.dist-directory }} ${{ matrix.src-directory }}
+        ls -R
+    - name: Store the distribution packages
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: 'error'
+        name: ${{ matrix.package-name }}-python-package-distributions
+        path: ${{ matrix.dist-directory }}
+# ----------------------------------------
+  publish-to-pypi:
+    strategy:
+      matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+    name: >-
+      Publish Python 🐍 distribution 📦 to PyPI
+    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    needs:
+      - setup-matrix
+      - build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{matrix.package-name}}  # Replace <package-name> with your PyPI project name
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.package-name }}-python-package-distributions
+        path: dist/
+    - name: Publish distribution 📦 to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
+# ----------------------------------------
+  publish-to-testpypi:
+    strategy:
+      matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+    name: Publish ${{matrix.package-name}} 🐍 distribution 📦 to TestPyPI
+    needs:
+    - setup-matrix
+    - build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/${{matrix.package-name}}
+
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Check and Set Variable
+      run: |
+        if [ -z "${{ env.GITHUB_WORKFLOW_REF }}" ]; then
+          echo "GITHUB_WORKFLOW_REF=refs/heads/${{ github.ref_name }}" >> $GITHUB_ENV
+        fi
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ matrix.package-name }}-python-package-distributions
+        path: dist/
+    - name: Publish distribution 📦 to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+# ----------------------------------------
+  # github-release:
+  #   name: >-
+  #     Sign the Python 🐍 distribution 📦 with Sigstore
+  #     and upload them to GitHub Release
+  #   needs:
+  #   - publish-to-pypi
+  #   runs-on: ubuntu-latest
+
+  #   permissions:
+  #     contents: write  # IMPORTANT: mandatory for making GitHub Releases
+  #     id-token: write  # IMPORTANT: mandatory for sigstore
+
+  #   steps:
+  #   - name: Download all the dists
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: ${{ matrix.package-name }}-python-package-distributions
+  #       path: dist/
+  #   - name: Sign the dists with Sigstore
+  #     uses: sigstore/gh-action-sigstore-python@v3.0.0
+  #     with:
+  #       inputs: >-
+  #         ./dist/*.tar.gz
+  #         ./dist/*.whl
+  #   - name: Create GitHub Release
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     run: >-
+  #       gh release create
+  #       '${{ github.ref_name }}'
+  #       --repo '${{ github.repository }}'
+  #       --notes ""
+  #   - name: Upload artifact signatures to GitHub Release
+  #     env:
+  #       GITHUB_TOKEN: ${{ github.token }}
+  #     # Upload to GitHub Release using the `gh` CLI.
+  #     # `dist/` contains the built packages, and the
+  #     # sigstore-produced signatures and certificates.
+  #     run: >-
+  #       gh release upload
+  #       '${{ github.ref_name }}' dist/**
+  #       --repo '${{ github.repository }}'
+
