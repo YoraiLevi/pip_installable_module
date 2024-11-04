@@ -80,7 +80,8 @@ jobs:
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        verbose: true
+        password: ${{ secrets.PYPI_API_TOKEN }} # PyPI API token for local use with act
 # ----------------------------------------
   publish-to-testpypi:
     strategy:
@@ -100,9 +101,8 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
-    - name: Check and Set Variable
+    - name: Set GITHUB_WORKFLOW_REF if not define, for local use with act
       run: |
-        echo "$GITHUB_WORKFLOW_REF"
         if [ -z "$GITHUB_WORKFLOW_REF" ]; then
           echo "GITHUB_WORKFLOW_REF=refs/heads/${{ github.ref_name }}" >> $GITHUB_ENV
         fi
@@ -114,8 +114,10 @@ jobs:
     - name: Publish distribution 📦 to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        skip-existing: true
+        verbose: true
         repository-url: https://test.pypi.org/legacy/
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }} # TestPyPI API token for local use with act
 # ----------------------------------------
   # github-release:
   #   name: >-
